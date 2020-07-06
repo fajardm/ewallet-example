@@ -11,12 +11,21 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"io"
 	"io/ioutil"
 	"strings"
 	"testing"
 )
 
 var app *bootstrap.Bootstrap
+
+func GetBody(r io.Reader) []byte {
+	body, err := ioutil.ReadAll(r)
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "Fatal error get body"))
+	}
+	return body
+}
 
 func TestMain(m *testing.M) {
 	viper.SetConfigFile("../config.test.yaml")

@@ -67,7 +67,7 @@ func TestCreateUser(t *testing.T) {
 		},
 		{
 			description:  "test with empty password",
-			request:      `{ "username": "john", "email": "john@gmail.com", "mobile_phone": "", "password": "" }`,
+			request:      `{ "username": "john", "email": "john@gmail.com", "mobile_phone": "0817384956973", "password": "" }`,
 			expectedCode: 400,
 		},
 		{
@@ -115,6 +115,70 @@ func TestGetUser(t *testing.T) {
 
 	for _, test := range cases {
 		req, _ := http.NewRequest("GET", fmt.Sprintf("/api/users/%s", test.id), nil)
+		req.Header.Add("Content-Type", "application/json")
+		res, err := app.Test(req, -1)
+
+		assert.NoError(t, err, test.description)
+		assert.Equal(t, test.expectedCode, res.StatusCode, test.description)
+	}
+}
+
+func TestUpdateUser(t *testing.T) {
+	user := createUser(`{ "username": "beny", "email": "beny@gmail.com", "mobile_phone": "081253647589", "password": "secret" }`)
+
+	cases := []struct {
+		description    string
+		paramID        string
+		request        string
+		expectedStatus string
+		expectedCode   int
+	}{
+		{
+			description:  "test with invalid id",
+			paramID:      "xxx",
+			request:      `{ "email": "beny2@gmail.com", "password": "secret" }`,
+			expectedCode: 400,
+		},
+		{
+			description:  "test with valid id but not registered",
+			paramID:      uuid.NewV4().String(),
+			request:      `{ "email": "beny2@gmail.com", "password": "secret" }`,
+			expectedCode: 404,
+		},
+		{
+			description:  "test with invalid json",
+			paramID:      user.ID.String(),
+			request:      `{}`,
+			expectedCode: 400,
+		},
+		{
+			description:  "test with empty email",
+			paramID:      user.ID.String(),
+			request:      `{ "email": "", "password": "secret" }`,
+			expectedCode: 400,
+		},
+		{
+			description:  "test with invalid email",
+			paramID:      user.ID.String(),
+			request:      `{ "email": "john", "password": "secret" }`,
+			expectedCode: 400,
+		},
+		{
+			description:  "test with empty password",
+			paramID:      user.ID.String(),
+			request:      `{ "email": "john@gmail.com", "password": "" }`,
+			expectedCode: 400,
+		},
+		{
+			description:  "test with valid json",
+			paramID:      user.ID.String(),
+			request:      `{ "email": "beny2@gmail.com", "password": "secret" }`,
+			expectedCode: 200,
+		},
+	}
+
+	for _, test := range cases {
+		req, _ := http.NewRequest("PUT", fmt.Sprintf("/api/users/%s", test.paramID), bytes.NewBufferString(test.request))
 		req.Header.Add("Content-Type", "application/json")
 		res, err := app.Test(req, -1)
 
