@@ -8,32 +8,30 @@ import (
 	_userUsecase "github.com/fajardm/ewallet-example/app/user/usecase"
 	"github.com/fajardm/ewallet-example/bootstrap"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/gofiber/fiber"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"os"
+	"io/ioutil"
+	"strings"
+	"testing"
 )
 
-func prepareConfig() {
-	file := os.Getenv("CONFIG")
-	if file == "" {
-		file = "config.yaml"
-	}
-	viper.SetConfigFile(file)
+var app *bootstrap.Bootstrap
+
+func TestMain(m *testing.M) {
+	viper.SetConfigFile("../config.test.yaml")
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatal(errors.Wrap(err, "Fatal error config file"))
 	}
-}
 
-func prepareDatabase() *sql.DB {
+	contextTimeout := viper.GetDuration("CONTEXT_TIMEOUT")
+
 	dbUser := viper.GetString("DATABASE.USER")
 	dbPassword := viper.GetString("DATABASE.PASSWORD")
 	dbHost := viper.GetString("DATABASE.HOST")
 	dbPort := viper.GetString("DATABASE.PORT")
 	dbName := viper.GetString("DATABASE.NAME")
-	connStr := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPassword, dbHost, dbPort, dbName)
-	conn, err := sql.Open(`mysql`, connStr)
+	conn, err := sql.Open(`mysql`, fmt.Sprintf("%s:%s@tcp(%s:%s)/", dbUser, dbPassword, dbHost, dbPort))
 	if err != nil {
 		log.Fatal(errors.Wrap(err, "Fatal error connecting database"))
 	}
@@ -41,14 +39,28 @@ func prepareDatabase() *sql.DB {
 	if err != nil {
 		log.Fatal(errors.Wrap(err, "Fatal error ping database"))
 	}
-	return conn
-}
-
-func main() {
-	prepareConfig()
-	contextTimeout := viper.GetDuration("CONTEXT_TIMEOUT")
-
-	conn := prepareDatabase()
+	if _, err := conn.Exec("DROP DATABASE IF EXISTS " + dbName); err != nil {
+		log.Fatal(errors.Wrap(err, "Fatal error drop database"))
+	}
+	files, err := ioutil.ReadDir("../database/migrations")
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "Fatal error read migrations directory"))
+	}
+	for _, file := range files {
+		f, err := ioutil.ReadFile("../database/migrations/" + file.Name())
+		if err != nil {
+			log.Fatal(errors.Wrap(err, "Fatal error read migration file"))
+		}
+		scripts := strings.Split(strings.Replace(string(f), "ewallet", dbName, -1), ";")
+		for _, script := range scripts {
+			script := strings.TrimSpace(script)
+			if script != "" {
+				if _, err := conn.Exec(script); err != nil {
+					log.Fatal(errors.Wrap(err, "Fatal error exec migration file"))
+				}
+			}
+		}
+	}
 	defer func() {
 		err := conn.Close()
 		if err != nil {
@@ -56,17 +68,12 @@ func main() {
 		}
 	}()
 
-	app := bootstrap.New(viper.GetString("APP_NAME"), viper.GetString("APP_OWNER"))
-	app.Get("/", func(ctx *fiber.Ctx) {
-		ctx.Send("Ok!")
-	})
+	app = bootstrap.New(viper.GetString("APP_NAME"), viper.GetString("APP_OWNER"))
 
 	// Register user handler
 	userRepository := _userRepository.NewUserRepository(conn)
 	userUsecase := _userUsecase.NewUserUsecase(userRepository, contextTimeout)
 	_userHttp.NewUserHandler(app, userUsecase)
 
-	if err := app.Listen(viper.GetInt("APP_PORT")); err != nil {
-		log.Fatal(errors.Wrap(err, "Fatal error listen port"))
-	}
+	m.Run()
 }

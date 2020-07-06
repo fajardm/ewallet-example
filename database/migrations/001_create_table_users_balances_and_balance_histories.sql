@@ -1,12 +1,6 @@
--- -----------------------------------------------------
--- Schema ewallet
--- -----------------------------------------------------
 CREATE SCHEMA IF NOT EXISTS `ewallet` DEFAULT CHARACTER SET utf8 ;
 USE `ewallet` ;
 
--- -----------------------------------------------------
--- Table `ewallet`.`users`
--- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ewallet`.`users` (
   `id` VARCHAR(36) NOT NULL,
   `username` VARCHAR(45) NOT NULL,
@@ -24,10 +18,6 @@ CREATE TABLE IF NOT EXISTS `ewallet`.`users` (
   UNIQUE INDEX `mobile_phone_UNIQUE` (`mobile_phone` ASC))
 ENGINE = InnoDB;
 
-
--- -----------------------------------------------------
--- Table `ewallet`.`balances`
--- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ewallet`.`balances` (
   `id` VARCHAR(36) NOT NULL,
   `balance` FLOAT NOT NULL,
@@ -46,10 +36,6 @@ CREATE TABLE IF NOT EXISTS `ewallet`.`balances` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
-
--- -----------------------------------------------------
--- Table `ewallet`.`balances`
--- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ewallet`.`balances` (
   `id` VARCHAR(36) NOT NULL,
   `balance` FLOAT NOT NULL,
@@ -68,10 +54,6 @@ CREATE TABLE IF NOT EXISTS `ewallet`.`balances` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
-
--- -----------------------------------------------------
--- Table `ewallet`.`balance_histories`
--- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ewallet`.`balance_histories` (
   `id` VARCHAR(36) NOT NULL,
   `balance_before` FLOAT NOT NULL,
