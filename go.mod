@@ -3,10 +3,12 @@ module github.com/fajardm/ewallet-example
 go 1.14
 
 require (
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gofiber/fiber v1.12.4
+	github.com/gofiber/jwt v0.1.1
 	github.com/klauspost/compress v1.10.10 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/mitchellh/mapstructure v1.3.2 // indirect

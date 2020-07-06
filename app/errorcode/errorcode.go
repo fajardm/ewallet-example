@@ -14,6 +14,8 @@ var (
 	ErrConflict = errors.New("your data already exist")
 	// ErrBadParamInput will throw if the given request-body or params is not valid
 	ErrBadParamInput = errors.New("given param is not valid")
+	// ErrUnauthorized will throw if actor not authorized to access usecase
+	ErrUnauthorized = errors.New("unauthorized")
 )
 
 var statusCode = map[error]int{
@@ -21,6 +23,7 @@ var statusCode = map[error]int{
 	ErrNotFound:            http.StatusNotFound,
 	ErrConflict:            http.StatusConflict,
 	ErrBadParamInput:       http.StatusBadRequest,
+	ErrUnauthorized:        http.StatusUnauthorized,
 }
 
 func StatusCode(err error) int {

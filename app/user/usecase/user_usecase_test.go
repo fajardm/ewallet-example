@@ -17,6 +17,7 @@ import (
 const contextTimeout = 2 * time.Second
 
 func prepareMockUser() model.User {
+	password, _ := model.GeneratePassword("secret")
 	return model.User{
 		Model: base.Model{
 			ID:        uuid.NewV4(),
@@ -26,8 +27,31 @@ func prepareMockUser() model.User {
 		Username:       "john",
 		Email:          "john@gmail.com",
 		MobilePhone:    "08199999999",
-		HashedPassword: []byte("secret"),
+		HashedPassword: password,
 	}
+}
+
+func TestLogin(t *testing.T) {
+	mockUserRepo := new(mocks.Repository)
+	mockUser := prepareMockUser()
+
+	t.Run("success", func(t *testing.T) {
+		mockUserRepo.On("GetByUsernameOrEmail", mock.Anything, mock.Anything, mock.Anything).Return(&mockUser, nil).Once()
+		uc := usecase.NewUserUsecase(mockUserRepo, contextTimeout)
+		res, err := uc.Login(context.TODO(), "john", "john@gmail.com", "secret")
+		assert.NoError(t, err)
+		assert.NotNil(t, res)
+		mockUserRepo.AssertExpectations(t)
+	})
+
+	t.Run("error-not-found", func(t *testing.T) {
+		mockUserRepo.On("GetByUsernameOrEmail", mock.Anything, mock.Anything, mock.Anything).Return(nil, errorcode.ErrNotFound).Once()
+		uc := usecase.NewUserUsecase(mockUserRepo, contextTimeout)
+		res, err := uc.Login(context.TODO(), "username", "email@gmail.com", "password")
+		assert.Error(t, err)
+		assert.Nil(t, res)
+		mockUserRepo.AssertExpectations(t)
+	})
 }
 
 func TestStore(t *testing.T) {

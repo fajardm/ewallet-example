@@ -8,6 +8,7 @@ import (
 
 // Usecase represent the user's usecase contract
 type Usecase interface {
+	Login(context.Context, string, string, string) (*model.User, error)
 	Store(context.Context, model.User) error
 	GetByID(context.Context, uuid.UUID) (*model.User, error)
 	Update(context.Context, model.User) error

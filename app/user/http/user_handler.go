@@ -1,15 +1,19 @@
 package http
 
 import (
+	"github.com/dgrijalva/jwt-go"
 	"github.com/fajardm/ewallet-example/app/base"
 	"github.com/fajardm/ewallet-example/app/errorcode"
 	"github.com/fajardm/ewallet-example/app/user"
 	"github.com/fajardm/ewallet-example/app/user/model"
 	"github.com/fajardm/ewallet-example/bootstrap"
+	"github.com/fajardm/ewallet-example/middleware"
 	"github.com/fajardm/ewallet-example/validator"
 	"github.com/gofiber/fiber"
 	uuid "github.com/satori/go.uuid"
+	"github.com/spf13/viper"
 	"net/http"
+	"time"
 )
 
 type userHandler struct {
@@ -19,10 +23,55 @@ type userHandler struct {
 func NewUserHandler(app *bootstrap.Bootstrap, userUsecase user.Usecase) {
 	handler := userHandler{userUsecase: userUsecase}
 	api := app.Group("/api")
+	api.Post("/users/login", handler.Login)
 	api.Post("/users", handler.Store)
+	api.Use(middleware.Protected())
 	api.Get("/users/:id", handler.GetByID)
 	api.Put("/users/:id", handler.Update)
 	api.Delete("/users/:id", handler.Delete)
+}
+
+func (u userHandler) Login(ctx *fiber.Ctx) {
+	// Binds input
+	type Input struct {
+		UsernameOrEmail string `json:"username_or_email" validate:"required"`
+		Password        string `json:"password" validate:"required"`
+	}
+	input := new(Input)
+	if err := ctx.BodyParser(input); err != nil {
+		ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"status": "error", "message": errorcode.ErrBadParamInput.Error()})
+		return
+	}
+
+	// Validate input
+	if err := validator.Validate().Struct(input); err != nil {
+		ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"status": "error", "message": errorcode.ErrBadParamInput.Error(), "data": err.Error()})
+		return
+	}
+
+	user, err := u.userUsecase.Login(ctx.Context(), input.UsernameOrEmail, input.UsernameOrEmail, input.Password)
+	if err != nil {
+		ctx.Status(errorcode.StatusCode(err)).JSON(fiber.Map{"status": "error", "message": err.Error()})
+		return
+	}
+
+	// Create token
+	token := jwt.New(jwt.SigningMethodHS256)
+
+	// Set claims
+	claims := token.Claims.(jwt.MapClaims)
+	claims["user_id"] = user.ID.String()
+	claims["username"] = user.Username
+	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
+
+	// Generate encoded token and send it as response.
+	t, err := token.SignedString([]byte(viper.GetString("APP_SECRET")))
+	if err != nil {
+		ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"status": "error", "message": err.Error()})
+		return
+	}
+
+	ctx.JSON(fiber.Map{"status": "success", "data": fiber.Map{"token": t, "expires": claims["exp"]}})
 }
 
 func (u userHandler) Store(ctx *fiber.Ctx) {
@@ -92,7 +141,16 @@ func (u userHandler) Update(ctx *fiber.Ctx) {
 		ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"status": "error", "message": err.Error()})
 		return
 	}
-	userModel := model.User{Model: base.Model{ID: id}, Email: input.Email, HashedPassword: hashedPassword}
+	now := time.Now()
+	userModel := model.User{
+		Model: base.Model{
+			ID:        id,
+			UpdatedBy: &uuid.UUID{},
+			UpdatedAt: &now,
+		},
+		Email:          input.Email,
+		HashedPassword: hashedPassword,
+	}
 
 	// Updating data
 	if err := u.userUsecase.Update(ctx.Context(), userModel); err != nil {

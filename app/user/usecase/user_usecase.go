@@ -18,6 +18,27 @@ func NewUserUsecase(userRepository user.Repository, contextTimeout time.Duration
 	return userUsecase{userRepository: userRepository, contextTimeout: contextTimeout}
 }
 
+func (u userUsecase) Login(ctx context.Context, username, email, password string) (*model.User, error) {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	user, err := u.userRepository.GetByUsernameOrEmail(ctx, username, email)
+	if err != nil {
+		return nil, err
+	}
+
+	valid, err := user.ValidatePassword(password)
+	if err != nil {
+		return nil, err
+	}
+
+	if !valid {
+		return nil, errorcode.ErrUnauthorized
+	}
+
+	return user, nil
+}
+
 func (u userUsecase) Store(ctx context.Context, user model.User) error {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
