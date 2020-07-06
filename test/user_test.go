@@ -186,3 +186,39 @@ func TestUpdateUser(t *testing.T) {
 		assert.Equal(t, test.expectedCode, res.StatusCode, test.description)
 	}
 }
+
+func TestDeletetUser(t *testing.T) {
+	user := createUser(`{ "username": "dony", "email": "dony@gmail.com", "mobile_phone": "081253840698", "password": "secret" }`)
+
+	cases := []struct {
+		description    string
+		id             string
+		expectedStatus string
+		expectedCode   int
+	}{
+		{
+			description:  "test with invalid id",
+			id:           "xxx",
+			expectedCode: 400,
+		},
+		{
+			description:  "test with valid id but not registered",
+			id:           uuid.NewV4().String(),
+			expectedCode: 404,
+		},
+		{
+			description:  "test with valid id",
+			id:           user.ID.String(),
+			expectedCode: 200,
+		},
+	}
+
+	for _, test := range cases {
+		req, _ := http.NewRequest("DELETE", fmt.Sprintf("/api/users/%s", test.id), nil)
+		req.Header.Add("Content-Type", "application/json")
+		res, err := app.Test(req, -1)
+
+		assert.NoError(t, err, test.description)
+		assert.Equal(t, test.expectedCode, res.StatusCode, test.description)
+	}
+}

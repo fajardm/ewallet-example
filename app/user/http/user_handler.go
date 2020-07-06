@@ -22,6 +22,7 @@ func NewUserHandler(app *bootstrap.Bootstrap, userUsecase user.Usecase) {
 	api.Post("/users", handler.Store)
 	api.Get("/users/:id", handler.GetByID)
 	api.Put("/users/:id", handler.Update)
+	api.Delete("/users/:id", handler.Delete)
 }
 
 func (u userHandler) Store(ctx *fiber.Ctx) {
@@ -107,4 +108,21 @@ func (u userHandler) Update(ctx *fiber.Ctx) {
 	}
 
 	ctx.JSON(fiber.Map{"status": "success", "data": data})
+}
+
+func (u userHandler) Delete(ctx *fiber.Ctx) {
+	// Preparing uuid
+	id, err := uuid.FromString(ctx.Params("id"))
+	if err != nil {
+		ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"status": "error", "message": errorcode.ErrBadParamInput.Error()})
+		return
+	}
+
+	// Delete user
+	if err := u.userUsecase.Delete(ctx.Context(), id); err != nil {
+		ctx.Status(errorcode.StatusCode(err)).JSON(fiber.Map{"status": "error", "message": err.Error()})
+		return
+	}
+
+	ctx.JSON(fiber.Map{"status": "success", "data": true})
 }
