@@ -77,6 +77,41 @@ func TestGetByID(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
+func TestGetByUsernameOrEmail(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	mockUser := []model.User{
+		model.User{
+			Model: base.Model{
+				ID:        uuid.NewV4(),
+				CreatedBy: uuid.NewV4(),
+				CreatedAt: time.Now(),
+			},
+			Username:       "john",
+			Email:          "john@gmail.com",
+			MobilePhone:    "08199999999",
+			HashedPassword: []byte("secret"),
+		},
+	}
+
+	rows := sqlmock.NewRows([]string{"id", "username", "email", "mobile_phone", "hashed_password", "created_by", "created_at", "updated_by", "updated_at"})
+	rows.AddRow(mockUser[0].ID, mockUser[0].Username, mockUser[0].Email, mockUser[0].MobilePhone, mockUser[0].HashedPassword, mockUser[0].CreatedBy, mockUser[0].CreatedAt, mockUser[0].UpdatedBy, mockUser[0].UpdatedAt)
+
+	prep := mock.ExpectQuery("^SELECT (.+)")
+	prep.WillReturnRows(rows)
+
+	r := mysql.NewUserRepository(db)
+	res, err := r.GetByUsernameOrEmail(context.TODO(), mockUser[0].Username, mockUser[0].Email)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
 func TestUpdate(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {

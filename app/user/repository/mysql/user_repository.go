@@ -69,6 +69,18 @@ func (u userRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.User,
 	return nil, errorcode.ErrNotFound
 }
 
+func (u userRepository) GetByUsernameOrEmail(ctx context.Context, username string, email string) (*model.User, error) {
+	q := querySelectUser + " WHERE username=? OR email=?"
+	list, err := u.fetchContext(ctx, q, username, email)
+	if err != nil {
+		return nil, err
+	}
+	if len(list) > 0 {
+		return &list[0], nil
+	}
+	return nil, errorcode.ErrNotFound
+}
+
 func (u userRepository) Update(ctx context.Context, user model.User) (err error) {
 	res, err := u.conn.ExecContext(ctx, queryUpdateUser, user.Email, user.HashedPassword, user.UpdatedBy, user.UpdatedAt, user.ID)
 	if err != nil {
