@@ -1,6 +1,9 @@
 package errorcode
 
-import "github.com/pkg/errors"
+import (
+	"github.com/pkg/errors"
+	"net/http"
+)
 
 var (
 	// ErrInternalServerError will throw if any the Internal Server Error happen
@@ -12,3 +15,17 @@ var (
 	// ErrBadParamInput will throw if the given request-body or params is not valid
 	ErrBadParamInput = errors.New("given param is not valid")
 )
+
+var statusCode = map[error]int{
+	ErrInternalServerError: http.StatusInternalServerError,
+	ErrNotFound:            http.StatusNotFound,
+	ErrConflict:            http.StatusConflict,
+	ErrBadParamInput:       http.StatusBadRequest,
+}
+
+func StatusCode(err error) int {
+	if c, ok := statusCode[err]; ok {
+		return c
+	}
+	return http.StatusInternalServerError
+}

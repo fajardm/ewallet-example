@@ -32,7 +32,7 @@ func prepareDatabase() *sql.DB {
 	dbHost := viper.GetString("DATABASE.HOST")
 	dbPort := viper.GetString("DATABASE.PORT")
 	dbName := viper.GetString("DATABASE.NAME")
-	connStr := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPassword, dbHost, dbPort, dbName)
+	connStr := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", dbUser, dbPassword, dbHost, dbPort, dbName)
 	conn, err := sql.Open(`mysql`, connStr)
 	if err != nil {
 		log.Fatal(errors.Wrap(err, "Fatal error connecting database"))

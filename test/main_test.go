@@ -31,7 +31,7 @@ func TestMain(m *testing.M) {
 	dbHost := viper.GetString("DATABASE.HOST")
 	dbPort := viper.GetString("DATABASE.PORT")
 	dbName := viper.GetString("DATABASE.NAME")
-	conn, err := sql.Open(`mysql`, fmt.Sprintf("%s:%s@tcp(%s:%s)/", dbUser, dbPassword, dbHost, dbPort))
+	conn, err := sql.Open(`mysql`, fmt.Sprintf("%s:%s@tcp(%s:%s)/?parseTime=true", dbUser, dbPassword, dbHost, dbPort))
 	if err != nil {
 		log.Fatal(errors.Wrap(err, "Fatal error connecting database"))
 	}
