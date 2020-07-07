@@ -20,7 +20,7 @@ func NewBalanceHandler(app *bootstrap.Bootstrap, balanceUsecase balance.Usecase)
 	api.Get("/balances", middleware.Protected(), handler.GetBalance)
 	api.Get("/balances/histories", middleware.Protected(), handler.GetBalanceHistories)
 	api.Post("/balances/transfer", middleware.Protected(), handler.TransferBalance)
-	api.Post("/balances/topup", middleware.Protected(), handler.TransferBalance)
+	api.Post("/balances/topup", middleware.Protected(), handler.TopUp)
 }
 
 func (b balanceHandler) GetBalance(ctx *fiber.Ctx) {
@@ -70,6 +70,31 @@ func (b balanceHandler) TransferBalance(ctx *fiber.Ctx) {
 	}
 
 	if err := b.balanceUsecase.TransferBalance(ctx.Context(), *userID, input.ToUserID, input.Amount); err != nil {
+		ctx.Status(errorcode.StatusCode(err)).JSON(fiber.Map{"status": "error", "message": err.Error()})
+		return
+	}
+
+	ctx.JSON(fiber.Map{"status": "success", "data": true})
+}
+
+func (b balanceHandler) TopUp(ctx *fiber.Ctx) {
+	userID, err := middleware.GetUserID(ctx)
+	if err != nil {
+		ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"status": "error", "message": errorcode.ErrBadParamInput.Error()})
+		return
+	}
+
+	// Binds input
+	type Input struct {
+		Amount float64 `json:"amount" validate:"required"`
+	}
+	input := new(Input)
+	if err := ctx.BodyParser(input); err != nil {
+		ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"status": "error", "message": errorcode.ErrBadParamInput.Error()})
+		return
+	}
+
+	if err := b.balanceUsecase.TopUp(ctx.Context(), *userID, input.Amount); err != nil {
 		ctx.Status(errorcode.StatusCode(err)).JSON(fiber.Map{"status": "error", "message": err.Error()})
 		return
 	}

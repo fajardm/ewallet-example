@@ -126,10 +126,10 @@ func (b balanceUsecase) TopUp(ctx context.Context, userID uuid.UUID, amount floa
 	if err != nil {
 		return err
 	}
+	bfs := balance.Balance
 	if err := balance.Add(amount); err != nil {
 		return err
 	}
-	bfs := balance.Balance
 	activity := fmt.Sprintf("topup amount %d", amount)
 	balance.Histories = model.BalanceHistories{
 		model.BalanceHistory{
