@@ -1,0 +1,26 @@
+version: '3.8'
+services:
+  db:
+    container_name: ewallet_example_mysql
+    image: mysql:5.7
+    restart: always
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=secret
+      - MYSQL_DATABASE=ewallet
+      - MYSQL_USER=zombie
+      - MYSQL_PASSWORD=zombie
+  api:
+    container_name: ewallet_example_api
+    build: ./
+    image: ewallet_example_api:latest
+    ports:
+      - 8080:8080
+    depends_on:
+      - db
+    links:
+      - db
+    restart: always
+    expose:
+      - 8080

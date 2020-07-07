@@ -1,11 +1,11 @@
 APP_NAME: E-Wallet
 APP_OWNER: fajar.dwi.mawan@gmail.com
-APP_PORT: 4000
+APP_PORT: 8080
 APP_SECRET: secret
 CONTEXT_TIMEOUT: 3s
 DATABASE:
-  USER: root
-  PASSWORD: secret
-  HOST: localhost
+  USER: zombie
+  PASSWORD: zombie
+  HOST: db
   PORT: 3306
   NAME: ewallet

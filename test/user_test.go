@@ -288,7 +288,5 @@ func TestDeletetUser(t *testing.T) {
 
 		assert.NoError(t, err, test.description)
 		assert.Equal(t, test.expectedCode, res.StatusCode, test.description)
-
-		fmt.Println(string(GetBody(res.Body)), test.id)
 	}
 }

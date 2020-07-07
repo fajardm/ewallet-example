@@ -17,6 +17,3 @@
 # vendor/
 
 .idea
-config.yaml
-
-/config.test.yaml
