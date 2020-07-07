@@ -17,10 +17,10 @@ type balanceHandler struct {
 func NewBalanceHandler(app *bootstrap.Bootstrap, balanceUsecase balance.Usecase) {
 	handler := balanceHandler{balanceUsecase: balanceUsecase}
 	api := app.Group("/api")
-	api.Get("/balances", middleware.Protected(), handler.GetBalance)
-	api.Get("/balances/histories", middleware.Protected(), handler.GetBalanceHistories)
-	api.Post("/balances/transfer", middleware.Protected(), handler.TransferBalance)
-	api.Post("/balances/topup", middleware.Protected(), handler.TopUp)
+	api.Get("/balances", middleware.Protected(), middleware.CheckSession, handler.GetBalance)
+	api.Get("/balances/histories", middleware.Protected(), middleware.CheckSession, handler.GetBalanceHistories)
+	api.Post("/balances/transfer", middleware.Protected(), middleware.CheckSession, handler.TransferBalance)
+	api.Post("/balances/topup", middleware.Protected(), middleware.CheckSession, handler.TopUp)
 }
 
 func (b balanceHandler) GetBalance(ctx *fiber.Ctx) {
