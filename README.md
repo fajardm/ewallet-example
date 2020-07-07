@@ -15,15 +15,18 @@ E-Wallet is a system used to store money balances but not real money and use it 
 ## System Design
 
 ### Usecase Diagram
-![Diagram](docs/assets/ewallet-ewallet usecase diagram.png)
+![Diagram](docs/assets/ewallet-ewallet-usecase-diagram.png)
  
  [See the details](docs/USECASE.md)
+ 
+ Note:
+ 1. Top up balance from bank system will be simulated using endpoint `{{ host  }}/api/balances/topup`
 
 ### Database Design
 ![Diagram](docs/assets/database-design.png)
 
 ## Create Container
-1. Copy .env.docker.example to .env then edit the content based on your preferred configuration
+1. Copy `config.docker.example.yaml` to `config.yaml` then edit the content based on your preferred configuration
 2. Run docker-compose.yaml
 ```
 docker-compose up --build -d
@@ -39,5 +42,5 @@ docker-compose exec api go run script/run_seed/run_seed.go
 ```
 
 ## Testing using Insomnia
-1. Import Insomnia.json to your Insomnia app
+1. Import `Insomnia.json` to your Insomnia app
 2. Change Environment based on your preference
