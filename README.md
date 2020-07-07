@@ -13,6 +13,7 @@ E-Wallet is a system used to store money balances but not real money and use it 
 ![Diagram](docs/assets/diagram.png)
 
 ## System Design
+This system developed using Golang and Fiber Web Framework.
 
 ### Usecase Diagram
 ![Diagram](docs/assets/ewallet-ewallet-usecase-diagram.png)
