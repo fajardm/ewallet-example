@@ -34,10 +34,10 @@ const (
 		) VALUES (?, ?, ?, ?, ?)
 	`
 	queryUpdateBalance = `
-		UPDATE balances SET balance=?, updated_by=?, updated_at=? WHERE user_id=?
+		UPDATE balances SET balance=?, updated_by=?, updated_at=? WHERE id=?
 	`
 	queryDeleteBalance = `
-		DELETE FROM balances WHERE user_id=?
+		DELETE FROM balances WHERE id=?
 	`
 	// Table balance_histories
 	querySelectBalanceHistories = `
@@ -87,15 +87,6 @@ func NewBalanceRepository(conn *database.MySQL) balance.Repository {
 
 func (b balanceRepository) TxStore(ctx context.Context, tx *sql.Tx, balance model.Balance) (err error) {
 	_, err = tx.ExecContext(ctx, queryInsertBalance, balance.ID, balance.Balance, balance.UserID, balance.CreatedBy, balance.CreatedAt)
-	if err != nil {
-		return
-	}
-
-	for _, h := range balance.Histories {
-		if _, err = tx.ExecContext(ctx, queryInsertBalanceHistories, h.ID, h.BalanceBefore, h.BalanceAfter, h.Activity, h.Type, h.IP, h.Location, h.UserAgent, h.BalanceID, h.CreatedBy, h.CreatedAt); err != nil {
-			return
-		}
-	}
 	return
 }
 
@@ -111,21 +102,24 @@ func (b balanceRepository) GetByUserID(ctx context.Context, userID uuid.UUID) (*
 	return nil, errorcode.ErrNotFound
 }
 
-func (b balanceRepository) Update(ctx context.Context, m model.Balance) error {
-	panic("implement me")
-}
-
-func (b balanceRepository) TxDeleteByUserID(ctx context.Context, tx *sql.Tx, userID uuid.UUID) (err error) {
-	balance, err := b.GetByUserID(ctx, userID)
+func (b balanceRepository) TxUpdate(ctx context.Context, tx *sql.Tx, balance model.Balance) (err error) {
+	res, err := tx.ExecContext(ctx, queryUpdateBalance, balance.Balance, balance.UpdatedBy, balance.UpdatedAt, balance.ID)
 	if err != nil {
 		return err
 	}
-
-	if err = b.txDeleteBalanceHistoriesByBalanceID(ctx, tx, balance.ID); err != nil {
-		return err
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return
 	}
+	if affected > 1 {
+		err = fmt.Errorf("Weird behaviour. Total affected: %d", affected)
+		return
+	}
+	return
+}
 
-	res, err := tx.ExecContext(ctx, queryDeleteBalance, userID)
+func (b balanceRepository) TxDelete(ctx context.Context, tx *sql.Tx, id uuid.UUID) (err error) {
+	res, err := tx.ExecContext(ctx, queryDeleteBalance, id)
 	if err != nil {
 		return
 	}
@@ -140,17 +134,17 @@ func (b balanceRepository) TxDeleteByUserID(ctx context.Context, tx *sql.Tx, use
 	return
 }
 
-func (b balanceRepository) FetchBalanceHistoriesByUserID(ctx context.Context, userID uuid.UUID) (model.BalanceHistories, error) {
-	balance, err := b.GetByUserID(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-
-	q := querySelectBalanceHistories + " WHERE balance_id = ? ORDER BY created_at DESC LIMIT 10"
-	return b.fetchBalanceHistoriesContext(ctx, q, balance.ID)
+func (b balanceRepository) TxStoreBalanceHistory(ctx context.Context, tx *sql.Tx, history model.BalanceHistory) (err error) {
+	_, err = tx.ExecContext(ctx, queryInsertBalanceHistories, history.ID, history.BalanceBefore, history.BalanceAfter, history.Activity, history.Type, history.IP, history.Location, history.UserAgent, history.BalanceID, history.CreatedBy, history.CreatedAt)
+	return
 }
 
-func (b balanceRepository) txDeleteBalanceHistoriesByBalanceID(ctx context.Context, tx *sql.Tx, balanceID uuid.UUID) (err error) {
+func (b balanceRepository) FetchBalanceHistoriesByBalanceID(ctx context.Context, balanceID uuid.UUID) (model.BalanceHistories, error) {
+	q := querySelectBalanceHistories + " WHERE balance_id = ? ORDER BY created_at DESC LIMIT 10"
+	return b.fetchBalanceHistoriesContext(ctx, q, balanceID)
+}
+
+func (b balanceRepository) TxDeleteBalanceHistoriesByBalanceID(ctx context.Context, tx *sql.Tx, balanceID uuid.UUID) (err error) {
 	res, err := tx.ExecContext(ctx, queryDeleteBalanceHistories, balanceID)
 	if err != nil {
 		return

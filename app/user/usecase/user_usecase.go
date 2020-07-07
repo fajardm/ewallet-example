@@ -90,6 +90,9 @@ func (u userUsecase) Store(ctx context.Context, user model.User) error {
 		if err = u.balanceRepository.TxStore(ctx, tx, userBalance); err != nil {
 			return err
 		}
+		if err = u.balanceRepository.TxStoreBalanceHistory(ctx, tx, userBalance.Histories[0]); err != nil {
+			return err
+		}
 		return err
 	})
 }
@@ -123,7 +126,14 @@ func (u userUsecase) Delete(ctx context.Context, id uuid.UUID) error {
 	}
 
 	return u.userRepository.WithTransaction(ctx, func(tx *sql.Tx) (err error) {
-		if err = u.balanceRepository.TxDeleteByUserID(ctx, tx, id); err != nil {
+		balance, err := u.balanceRepository.GetByUserID(ctx, id)
+		if err != nil {
+			return err
+		}
+		if err = u.balanceRepository.TxDeleteBalanceHistoriesByBalanceID(ctx, tx, balance.ID); err != nil {
+			return err
+		}
+		if err = u.balanceRepository.TxDelete(ctx, tx, balance.ID); err != nil {
 			return err
 		}
 		if err = u.userRepository.TxDelete(ctx, tx, id); err != nil {

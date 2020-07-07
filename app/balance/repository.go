@@ -11,7 +11,9 @@ import (
 type Repository interface {
 	TxStore(context.Context, *sql.Tx, model.Balance) error
 	GetByUserID(context.Context, uuid.UUID) (*model.Balance, error)
-	Update(context.Context, model.Balance) error
-	TxDeleteByUserID(context.Context, *sql.Tx, uuid.UUID) error
-	FetchBalanceHistoriesByUserID(context.Context, uuid.UUID) (model.BalanceHistories, error)
+	TxUpdate(context.Context, *sql.Tx, model.Balance) error
+	TxDelete(context.Context, *sql.Tx, uuid.UUID) error
+	TxStoreBalanceHistory(context.Context, *sql.Tx, model.BalanceHistory) error
+	FetchBalanceHistoriesByBalanceID(context.Context, uuid.UUID) (model.BalanceHistories, error)
+	TxDeleteBalanceHistoriesByBalanceID(context.Context, *sql.Tx, uuid.UUID) error
 }
