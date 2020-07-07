@@ -28,9 +28,9 @@ func NewUserHandler(app *bootstrap.Bootstrap, userUsecase user.Usecase) {
 	api.Post("/users/login", handler.Login)
 	api.Delete("/users/logout", middleware.Protected(), middleware.CheckSession, handler.Logout)
 	api.Post("/users", handler.Store)
-	api.Get("/users/:id", middleware.Protected(), middleware.CheckSession, handler.GetByID)
-	api.Put("/users/:id", middleware.Protected(), middleware.CheckSession, handler.Update)
-	api.Delete("/users/:id", middleware.Protected(), middleware.CheckSession, handler.Delete)
+	api.Get("/users", middleware.Protected(), middleware.CheckSession, handler.Get)
+	api.Put("/users", middleware.Protected(), middleware.CheckSession, handler.Update)
+	api.Delete("/users", middleware.Protected(), middleware.CheckSession, handler.Delete)
 }
 
 func (u userHandler) Login(ctx *fiber.Ctx) {
@@ -116,13 +116,13 @@ func (u userHandler) Store(ctx *fiber.Ctx) {
 	ctx.Status(http.StatusCreated).JSON(fiber.Map{"status": "success", "data": user})
 }
 
-func (u userHandler) GetByID(ctx *fiber.Ctx) {
-	id, err := uuid.FromString(ctx.Params("id"))
+func (u userHandler) Get(ctx *fiber.Ctx) {
+	id, err := middleware.GetUserID(ctx)
 	if err != nil {
 		ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"status": "error", "message": errorcode.ErrBadParamInput.Error()})
 		return
 	}
-	user, err := u.userUsecase.GetByID(ctx.Context(), id)
+	user, err := u.userUsecase.GetByID(ctx.Context(), *id)
 	if err != nil {
 		ctx.Status(errorcode.StatusCode(err)).JSON(fiber.Map{"status": "error", "message": err.Error()})
 		return
@@ -131,8 +131,7 @@ func (u userHandler) GetByID(ctx *fiber.Ctx) {
 }
 
 func (u userHandler) Update(ctx *fiber.Ctx) {
-	// Preparing uuid
-	id, err := uuid.FromString(ctx.Params("id"))
+	id, err := middleware.GetUserID(ctx)
 	if err != nil {
 		ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"status": "error", "message": errorcode.ErrBadParamInput.Error()})
 		return
@@ -164,7 +163,7 @@ func (u userHandler) Update(ctx *fiber.Ctx) {
 	now := time.Now()
 	userModel := model.User{
 		Model: base.Model{
-			ID:        id,
+			ID:        *id,
 			UpdatedBy: &uuid.UUID{},
 			UpdatedAt: &now,
 		},
@@ -179,7 +178,7 @@ func (u userHandler) Update(ctx *fiber.Ctx) {
 	}
 
 	// Resolve new data
-	data, err := u.userUsecase.GetByID(ctx.Context(), id)
+	data, err := u.userUsecase.GetByID(ctx.Context(), *id)
 	if err != nil {
 		ctx.Status(errorcode.StatusCode(err)).JSON(fiber.Map{"status": "error", "message": err.Error()})
 		return
@@ -189,15 +188,14 @@ func (u userHandler) Update(ctx *fiber.Ctx) {
 }
 
 func (u userHandler) Delete(ctx *fiber.Ctx) {
-	// Preparing uuid
-	id, err := uuid.FromString(ctx.Params("id"))
+	id, err := middleware.GetUserID(ctx)
 	if err != nil {
 		ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"status": "error", "message": errorcode.ErrBadParamInput.Error()})
 		return
 	}
 
 	// Delete user
-	if err := u.userUsecase.Delete(ctx.Context(), id); err != nil {
+	if err := u.userUsecase.Delete(ctx.Context(), *id); err != nil {
 		ctx.Status(errorcode.StatusCode(err)).JSON(fiber.Map{"status": "error", "message": err.Error()})
 		return
 	}
