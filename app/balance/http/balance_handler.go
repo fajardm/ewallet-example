@@ -20,6 +20,7 @@ func NewBalanceHandler(app *bootstrap.Bootstrap, balanceUsecase balance.Usecase)
 	api.Get("/balances", middleware.Protected(), handler.GetBalance)
 	api.Get("/balances/histories", middleware.Protected(), handler.GetBalanceHistories)
 	api.Post("/balances/transfer", middleware.Protected(), handler.TransferBalance)
+	api.Post("/balances/topup", middleware.Protected(), handler.TransferBalance)
 }
 
 func (b balanceHandler) GetBalance(ctx *fiber.Ctx) {

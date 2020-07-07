@@ -115,3 +115,47 @@ func (b balanceUsecase) TransferBalance(ctx context.Context, fromUserID, toUserI
 		return
 	})
 }
+
+func (b balanceUsecase) TopUp(ctx context.Context, userID uuid.UUID, amount float64) (err error) {
+	ctx, cancel := context.WithTimeout(ctx, b.contextTimeout)
+	defer cancel()
+
+	now := time.Now()
+
+	balance, err := b.balanceRepository.GetByUserID(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if err := balance.Add(amount); err != nil {
+		return err
+	}
+	bfs := balance.Balance
+	activity := fmt.Sprintf("topup amount %d", amount)
+	balance.Histories = model.BalanceHistories{
+		model.BalanceHistory{
+			Model: base.Model{
+				ID:        uuid.NewV4(),
+				CreatedBy: balance.UserID,
+				CreatedAt: now,
+			},
+			BalanceID:     balance.ID,
+			BalanceBefore: bfs,
+			BalanceAfter:  balance.Balance,
+			Activity:      &activity,
+			Type:          model.Credit,
+			IP:            nil,
+			Location:      nil,
+			UserAgent:     nil,
+		},
+	}
+
+	return b.balanceRepository.WithTransaction(ctx, func(tx *sql.Tx) (err error) {
+		if err = b.balanceRepository.TxUpdate(ctx, tx, *balance); err != nil {
+			return err
+		}
+		if err = b.balanceRepository.TxStoreBalanceHistory(ctx, tx, balance.Histories[0]); err != nil {
+			return err
+		}
+		return
+	})
+}
