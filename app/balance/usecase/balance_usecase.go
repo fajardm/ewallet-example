@@ -51,9 +51,9 @@ func (b balanceUsecase) TransferBalance(ctx context.Context, fromUserID, toUserI
 	}
 	bfs := sender.Balance
 	if err := sender.Reduce(amount); err != nil {
-		return
+		return err
 	}
-	senderActivity := fmt.Sprintf("transfer amount %d to %s", amount, m.BalanceReceiver.UserID)
+	senderActivity := fmt.Sprintf("transfer amount %d to %s", amount, toUserID)
 	sender.Histories = model.BalanceHistories{
 		model.BalanceHistory{
 			Model: base.Model{
@@ -78,9 +78,9 @@ func (b balanceUsecase) TransferBalance(ctx context.Context, fromUserID, toUserI
 	}
 	bfr := reciever.Balance
 	if err := reciever.Add(amount); err != nil {
-		return
+		return err
 	}
-	rActivity := fmt.Sprintf("retrieve amount %d from %s", amount, m.BalanceSender.UserID)
+	rActivity := fmt.Sprintf("retrieve amount %d from %s", amount, fromUserID)
 	reciever.Histories = model.BalanceHistories{
 		model.BalanceHistory{
 			Model: base.Model{
