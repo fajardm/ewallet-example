@@ -4,10 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/fajardm/ewallet-example/app/errorcode"
 	"github.com/fajardm/ewallet-example/app/user"
 	"github.com/fajardm/ewallet-example/app/user/model"
 	"github.com/fajardm/ewallet-example/database"
+	"github.com/fajardm/ewallet-example/errorcode"
 	uuid "github.com/satori/go.uuid"
 )
 

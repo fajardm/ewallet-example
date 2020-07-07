@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"github.com/fajardm/ewallet-example/app/balance"
 	"github.com/fajardm/ewallet-example/app/balance/model"
-	"github.com/fajardm/ewallet-example/app/errorcode"
 	"github.com/fajardm/ewallet-example/database"
+	"github.com/fajardm/ewallet-example/errorcode"
 	uuid "github.com/satori/go.uuid"
 )
 

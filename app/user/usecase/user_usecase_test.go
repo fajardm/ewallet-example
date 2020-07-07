@@ -3,10 +3,10 @@ package usecase_test
 import (
 	"context"
 	"github.com/fajardm/ewallet-example/app/base"
-	"github.com/fajardm/ewallet-example/app/errorcode"
 	"github.com/fajardm/ewallet-example/app/user/mocks"
 	"github.com/fajardm/ewallet-example/app/user/model"
 	"github.com/fajardm/ewallet-example/app/user/usecase"
+	"github.com/fajardm/ewallet-example/errorcode"
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

@@ -2,8 +2,8 @@ package http
 
 import (
 	"github.com/fajardm/ewallet-example/app/balance"
-	"github.com/fajardm/ewallet-example/app/errorcode"
 	"github.com/fajardm/ewallet-example/bootstrap"
+	"github.com/fajardm/ewallet-example/errorcode"
 	"github.com/fajardm/ewallet-example/middleware"
 	"github.com/gofiber/fiber"
 	uuid "github.com/satori/go.uuid"

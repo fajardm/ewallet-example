@@ -3,10 +3,10 @@ package http
 import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/fajardm/ewallet-example/app/base"
-	"github.com/fajardm/ewallet-example/app/errorcode"
 	"github.com/fajardm/ewallet-example/app/user"
 	"github.com/fajardm/ewallet-example/app/user/model"
 	"github.com/fajardm/ewallet-example/bootstrap"
+	"github.com/fajardm/ewallet-example/errorcode"
 	"github.com/fajardm/ewallet-example/middleware"
 	"github.com/fajardm/ewallet-example/validator"
 	"github.com/gofiber/fiber"

@@ -6,9 +6,9 @@ import (
 	"github.com/fajardm/ewallet-example/app/balance"
 	_balanceModel "github.com/fajardm/ewallet-example/app/balance/model"
 	"github.com/fajardm/ewallet-example/app/base"
-	"github.com/fajardm/ewallet-example/app/errorcode"
 	"github.com/fajardm/ewallet-example/app/user"
 	"github.com/fajardm/ewallet-example/app/user/model"
+	"github.com/fajardm/ewallet-example/errorcode"
 	uuid "github.com/satori/go.uuid"
 	"time"
 )
