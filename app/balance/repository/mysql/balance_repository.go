@@ -85,6 +85,10 @@ func NewBalanceRepository(conn *database.MySQL) balance.Repository {
 	return &balanceRepository{db: conn}
 }
 
+func (b balanceRepository) WithTransaction(ctx context.Context, fn func(tx *sql.Tx) error) error {
+	return b.db.WithTransaction(ctx, fn)
+}
+
 func (b balanceRepository) TxStore(ctx context.Context, tx *sql.Tx, balance model.Balance) (err error) {
 	_, err = tx.ExecContext(ctx, queryInsertBalance, balance.ID, balance.Balance, balance.UserID, balance.CreatedBy, balance.CreatedAt)
 	return

@@ -16,4 +16,5 @@ type Repository interface {
 	TxStoreBalanceHistory(context.Context, *sql.Tx, model.BalanceHistory) error
 	FetchBalanceHistoriesByBalanceID(context.Context, uuid.UUID) (model.BalanceHistories, error)
 	TxDeleteBalanceHistoriesByBalanceID(context.Context, *sql.Tx, uuid.UUID) error
+	WithTransaction(context.Context, func(tx *sql.Tx) error) error
 }

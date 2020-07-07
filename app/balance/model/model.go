@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"github.com/fajardm/ewallet-example/app/base"
 	uuid "github.com/satori/go.uuid"
 )
@@ -11,6 +12,19 @@ type Balance struct {
 	UserID    uuid.UUID        `json:"user_id"`
 	Balance   float64          `json:"balance"`
 	Histories BalanceHistories `json:"-"`
+}
+
+func (b *Balance) Reduce(amount float64) error {
+	if b.Balance == 0 {
+		return errors.New("not enough amount")
+	}
+	b.Balance = b.Balance - amount
+	return nil
+}
+
+func (b *Balance) Add(amount float64) error {
+	b.Balance = b.Balance + amount
+	return nil
 }
 
 // Balances is list of balance model
@@ -31,3 +45,9 @@ type BalanceHistory struct {
 
 // BalanceHistories is list of balance history model
 type BalanceHistories []BalanceHistory
+
+type TransferBalance struct {
+	BalanceSender   Balance
+	BalanceReceiver Balance
+	Amount          float64
+}

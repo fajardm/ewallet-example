@@ -10,4 +10,5 @@ import (
 type Usecase interface {
 	GetBalanceByUserID(context.Context, uuid.UUID) (*model.Balance, error)
 	GetBalanceHistoriesByUserID(context.Context, uuid.UUID) (model.BalanceHistories, error)
+	TransferBalance(context.Context, uuid.UUID, uuid.UUID, float64) error
 }
