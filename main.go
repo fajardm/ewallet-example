@@ -62,6 +62,7 @@ func main() {
 	}()
 
 	app := bootstrap.New(viper.GetString("APP_NAME"), viper.GetString("APP_OWNER"))
+	app.Bootstrap()
 	app.Get("/", func(ctx *fiber.Ctx) {
 		ctx.Send("Ok!")
 	})

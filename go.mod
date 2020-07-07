@@ -9,12 +9,14 @@ require (
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gofiber/fiber v1.12.4
 	github.com/gofiber/jwt v0.1.1
+	github.com/gofiber/session v1.2.3
 	github.com/klauspost/compress v1.10.10 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/mitchellh/mapstructure v1.3.2 // indirect
 	github.com/pelletier/go-toml v1.8.0 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/satori/go.uuid v1.2.0
+	github.com/savsgio/gotils v0.0.0-20200616100644-13ff1fd2c28c // indirect
 	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/afero v1.3.1 // indirect
 	github.com/spf13/cast v1.3.1 // indirect

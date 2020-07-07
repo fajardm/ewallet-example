@@ -1,8 +1,10 @@
 package middleware
 
 import (
+	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/fajardm/ewallet-example/errorcode"
+	"github.com/fajardm/ewallet-example/session"
 	"github.com/gofiber/fiber"
 	jwtware "github.com/gofiber/jwt"
 	uuid "github.com/satori/go.uuid"
@@ -15,6 +17,22 @@ func Protected() func(*fiber.Ctx) {
 		SigningKey:   []byte(viper.GetString("APP_SECRET")),
 		ErrorHandler: jwtError,
 	})
+}
+
+func CheckSession(ctx *fiber.Ctx) {
+	userID, err := GetUserID(ctx)
+	if err != nil {
+		ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"status": "error", "message": errorcode.ErrBadParamInput.Error()})
+		return
+	}
+
+	session := session.Session().Get(ctx)
+	t := session.Get(fmt.Sprintf("%s:token", userID.String()))
+	if t == nil {
+		ctx.Status(http.StatusUnauthorized).JSON(fiber.Map{"status": "error", "message": "Invalid or expired JWT"})
+		return
+	}
+	ctx.Next()
 }
 
 func jwtError(c *fiber.Ctx, err error) {

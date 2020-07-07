@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"github.com/gofiber/fiber"
+	"github.com/gofiber/session"
 	"time"
 )
 
@@ -12,6 +13,7 @@ type Bootstrap struct {
 	AppName      string
 	AppOwner     string
 	AppSpawnDate time.Time
+	Session      *session.Session
 }
 
 func New(appName, appOwner string, cfgs ...Configuration) *Bootstrap {
@@ -31,4 +33,7 @@ func (b *Bootstrap) Configure(cfgs ...Configuration) {
 	for _, cfg := range cfgs {
 		cfg(b)
 	}
+}
+
+func (b *Bootstrap) Bootstrap() {
 }

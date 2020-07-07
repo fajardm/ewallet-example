@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/fajardm/ewallet-example/app/base"
 	"github.com/fajardm/ewallet-example/app/user"
@@ -8,6 +9,7 @@ import (
 	"github.com/fajardm/ewallet-example/bootstrap"
 	"github.com/fajardm/ewallet-example/errorcode"
 	"github.com/fajardm/ewallet-example/middleware"
+	"github.com/fajardm/ewallet-example/session"
 	"github.com/fajardm/ewallet-example/validator"
 	"github.com/gofiber/fiber"
 	uuid "github.com/satori/go.uuid"
@@ -24,10 +26,11 @@ func NewUserHandler(app *bootstrap.Bootstrap, userUsecase user.Usecase) {
 	handler := userHandler{userUsecase: userUsecase}
 	api := app.Group("/api")
 	api.Post("/users/login", handler.Login)
+	api.Delete("/users/logout", middleware.Protected(), middleware.CheckSession, handler.Logout)
 	api.Post("/users", handler.Store)
-	api.Get("/users/:id", middleware.Protected(), handler.GetByID)
-	api.Put("/users/:id", middleware.Protected(), handler.Update)
-	api.Delete("/users/:id", middleware.Protected(), handler.Delete)
+	api.Get("/users/:id", middleware.Protected(), middleware.CheckSession, handler.GetByID)
+	api.Put("/users/:id", middleware.Protected(), middleware.CheckSession, handler.Update)
+	api.Delete("/users/:id", middleware.Protected(), middleware.CheckSession, handler.Delete)
 }
 
 func (u userHandler) Login(ctx *fiber.Ctx) {
@@ -70,7 +73,25 @@ func (u userHandler) Login(ctx *fiber.Ctx) {
 		return
 	}
 
+	session := session.Session().Get(ctx)
+	session.Set(fmt.Sprintf("%s:token", user.ID.String()), t)
+	session.Save()
+
 	ctx.JSON(fiber.Map{"status": "success", "data": fiber.Map{"token": t, "expires": claims["exp"]}})
+}
+
+func (u userHandler) Logout(ctx *fiber.Ctx) {
+	userID, err := middleware.GetUserID(ctx)
+	if err != nil {
+		ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"status": "error", "message": errorcode.ErrBadParamInput.Error()})
+		return
+	}
+
+	session := session.Session().Get(ctx)
+	session.Delete(fmt.Sprintf("%s:token", userID.String()))
+	session.Save()
+
+	ctx.JSON(fiber.Map{"status": "success", "data": true})
 }
 
 func (u userHandler) Store(ctx *fiber.Ctx) {

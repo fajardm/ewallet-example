@@ -81,6 +81,7 @@ func TestMain(m *testing.M) {
 	}()
 
 	app = bootstrap.New(viper.GetString("APP_NAME"), viper.GetString("APP_OWNER"))
+	app.Bootstrap()
 
 	// Register balance handler
 	balanceRepository := _balanceRepository.NewBalanceRepository(db)
