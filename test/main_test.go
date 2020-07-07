@@ -3,10 +3,12 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	_balanceRepository "github.com/fajardm/ewallet-example/app/balance/repository/mysql"
 	_userHttp "github.com/fajardm/ewallet-example/app/user/http"
 	_userRepository "github.com/fajardm/ewallet-example/app/user/repository/mysql"
 	_userUsecase "github.com/fajardm/ewallet-example/app/user/usecase"
 	"github.com/fajardm/ewallet-example/bootstrap"
+	"github.com/fajardm/ewallet-example/database"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -70,8 +72,9 @@ func TestMain(m *testing.M) {
 			}
 		}
 	}
+	db := &database.MySQL{DB: conn}
 	defer func() {
-		err := conn.Close()
+		err := db.Close()
 		if err != nil {
 			log.Fatal(errors.Wrap(err, "Fatal error close database"))
 		}
@@ -79,9 +82,12 @@ func TestMain(m *testing.M) {
 
 	app = bootstrap.New(viper.GetString("APP_NAME"), viper.GetString("APP_OWNER"))
 
+	// Register balance handler
+	balanceRepository := _balanceRepository.NewBalanceRepository(db)
+
 	// Register user handler
-	userRepository := _userRepository.NewUserRepository(conn)
-	userUsecase := _userUsecase.NewUserUsecase(userRepository, contextTimeout)
+	userRepository := _userRepository.NewUserRepository(db)
+	userUsecase := _userUsecase.NewUserUsecase(userRepository, balanceRepository, contextTimeout)
 	_userHttp.NewUserHandler(app, userUsecase)
 
 	m.Run()
