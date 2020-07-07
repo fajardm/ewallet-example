@@ -140,8 +140,14 @@ func (b balanceRepository) TxDeleteByUserID(ctx context.Context, tx *sql.Tx, use
 	return
 }
 
-func (b balanceRepository) FetchBalanceHistoriesByUserID(ctx context.Context, uuid uuid.UUID) (model.BalanceHistories, error) {
-	panic("implement me")
+func (b balanceRepository) FetchBalanceHistoriesByUserID(ctx context.Context, userID uuid.UUID) (model.BalanceHistories, error) {
+	balance, err := b.GetByUserID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	q := querySelectBalanceHistories + " WHERE balance_id = ? ORDER BY created_at DESC LIMIT 10"
+	return b.fetchBalanceHistoriesContext(ctx, q, balance.ID)
 }
 
 func (b balanceRepository) txDeleteBalanceHistoriesByBalanceID(ctx context.Context, tx *sql.Tx, balanceID uuid.UUID) (err error) {
@@ -164,6 +170,25 @@ func (b balanceRepository) fetchContext(ctx context.Context, query string, args 
 	for rows.Next() {
 		r := model.Balance{}
 		err = rows.Scan(&r.ID, &r.Balance, &r.UserID, &r.CreatedBy, &r.CreatedAt, &r.UpdatedBy, &r.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, r)
+	}
+	return res, nil
+}
+
+func (b balanceRepository) fetchBalanceHistoriesContext(ctx context.Context, query string, args ...interface{}) (model.BalanceHistories, error) {
+	rows, err := b.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	res := make(model.BalanceHistories, 0)
+	for rows.Next() {
+		r := model.BalanceHistory{}
+		err = rows.Scan(&r.ID, &r.BalanceBefore, &r.BalanceAfter, &r.Activity, &r.Activity, &r.Type, &r.IP, &r.Location, &r.UserAgent, &r.BalanceID, &r.CreatedBy, &r.CreatedAt, &r.UpdatedBy, &r.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
