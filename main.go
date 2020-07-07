@@ -3,7 +3,9 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	_usecaseHttp "github.com/fajardm/ewallet-example/app/balance/http"
 	_balanceRepository "github.com/fajardm/ewallet-example/app/balance/repository/mysql"
+	_balanceUsecase "github.com/fajardm/ewallet-example/app/balance/usecase"
 	_userHttp "github.com/fajardm/ewallet-example/app/user/http"
 	_userRepository "github.com/fajardm/ewallet-example/app/user/repository/mysql"
 	_userUsecase "github.com/fajardm/ewallet-example/app/user/usecase"
@@ -66,6 +68,8 @@ func main() {
 
 	// Register balance handler
 	balanceRepository := _balanceRepository.NewBalanceRepository(db)
+	balanceUsecase := _balanceUsecase.NewBalanceUsecase(balanceRepository, contextTimeout)
+	_usecaseHttp.NewBalanceHandler(app, balanceUsecase)
 
 	// Register user handler
 	userRepository := _userRepository.NewUserRepository(db)

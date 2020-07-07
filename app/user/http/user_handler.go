@@ -25,10 +25,9 @@ func NewUserHandler(app *bootstrap.Bootstrap, userUsecase user.Usecase) {
 	api := app.Group("/api")
 	api.Post("/users/login", handler.Login)
 	api.Post("/users", handler.Store)
-	api.Use(middleware.Protected())
-	api.Get("/users/:id", handler.GetByID)
-	api.Put("/users/:id", handler.Update)
-	api.Delete("/users/:id", handler.Delete)
+	api.Get("/users/:id", middleware.Protected(), handler.GetByID)
+	api.Put("/users/:id", middleware.Protected(), handler.Update)
+	api.Delete("/users/:id", middleware.Protected(), handler.Delete)
 }
 
 func (u userHandler) Login(ctx *fiber.Ctx) {

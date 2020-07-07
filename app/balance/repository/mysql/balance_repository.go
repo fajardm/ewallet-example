@@ -182,7 +182,7 @@ func (b balanceRepository) fetchBalanceHistoriesContext(ctx context.Context, que
 	res := make(model.BalanceHistories, 0)
 	for rows.Next() {
 		r := model.BalanceHistory{}
-		err = rows.Scan(&r.ID, &r.BalanceBefore, &r.BalanceAfter, &r.Activity, &r.Activity, &r.Type, &r.IP, &r.Location, &r.UserAgent, &r.BalanceID, &r.CreatedBy, &r.CreatedAt, &r.UpdatedBy, &r.UpdatedAt)
+		err = rows.Scan(&r.ID, &r.BalanceBefore, &r.BalanceAfter, &r.Activity, &r.Type, &r.IP, &r.Location, &r.UserAgent, &r.BalanceID, &r.CreatedBy, &r.CreatedAt, &r.UpdatedBy, &r.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
