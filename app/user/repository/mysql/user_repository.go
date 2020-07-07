@@ -7,6 +7,7 @@ import (
 	"github.com/fajardm/ewallet-example/app/errorcode"
 	"github.com/fajardm/ewallet-example/app/user"
 	"github.com/fajardm/ewallet-example/app/user/model"
+	"github.com/fajardm/ewallet-example/database"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -45,15 +46,19 @@ const (
 )
 
 type userRepository struct {
-	conn *sql.DB
+	db *database.MySQL
 }
 
-func NewUserRepository(conn *sql.DB) user.Repository {
-	return &userRepository{conn: conn}
+func NewUserRepository(conn *database.MySQL) user.Repository {
+	return &userRepository{db: conn}
 }
 
-func (u userRepository) Store(ctx context.Context, user model.User) error {
-	_, err := u.conn.ExecContext(ctx, queryInsertUser, user.ID, user.Username, user.Email, user.MobilePhone, user.HashedPassword, user.CreatedBy, user.CreatedAt)
+func (u userRepository) WithTransaction(ctx context.Context, fn func(tx *sql.Tx) error) error {
+	return u.db.WithTransaction(ctx, fn)
+}
+
+func (u userRepository) TxStore(ctx context.Context, tx *sql.Tx, user model.User) error {
+	_, err := tx.ExecContext(ctx, queryInsertUser, user.ID, user.Username, user.Email, user.MobilePhone, user.HashedPassword, user.CreatedBy, user.CreatedAt)
 	return err
 }
 
@@ -82,7 +87,7 @@ func (u userRepository) GetByUsernameOrEmail(ctx context.Context, username strin
 }
 
 func (u userRepository) Update(ctx context.Context, user model.User) (err error) {
-	res, err := u.conn.ExecContext(ctx, queryUpdateUser, user.Email, user.HashedPassword, user.UpdatedBy, user.UpdatedAt, user.ID)
+	res, err := u.db.ExecContext(ctx, queryUpdateUser, user.Email, user.HashedPassword, user.UpdatedBy, user.UpdatedAt, user.ID)
 	if err != nil {
 		return err
 	}
@@ -97,8 +102,8 @@ func (u userRepository) Update(ctx context.Context, user model.User) (err error)
 	return
 }
 
-func (u userRepository) Delete(ctx context.Context, id uuid.UUID) (err error) {
-	res, err := u.conn.ExecContext(ctx, queryDeleteUser, id)
+func (u userRepository) TxDelete(ctx context.Context, tx *sql.Tx, id uuid.UUID) (err error) {
+	res, err := tx.ExecContext(ctx, queryDeleteUser, id)
 	if err != nil {
 		return
 	}
@@ -114,7 +119,7 @@ func (u userRepository) Delete(ctx context.Context, id uuid.UUID) (err error) {
 }
 
 func (u userRepository) fetchContext(ctx context.Context, query string, args ...interface{}) (model.Users, error) {
-	rows, err := u.conn.QueryContext(ctx, query, args...)
+	rows, err := u.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}

@@ -8,9 +8,13 @@ import (
 // Balance is balance model
 type Balance struct {
 	base.Model
-	UserID  uuid.UUID `json:"user_id"`
-	Balance float64   `json:"balance"`
+	UserID    uuid.UUID        `json:"user_id"`
+	Balance   float64          `json:"balance"`
+	Histories BalanceHistories `json:"-"`
 }
+
+// Balances is list of balance model
+type Balances []Balance
 
 // BalanceHistory is balance history model
 type BalanceHistory struct {
@@ -24,3 +28,6 @@ type BalanceHistory struct {
 	Location      *string                `json:"location"`
 	UserAgent     *string                `json:"user_agent"`
 }
+
+// BalanceHistories is list of balance history model
+type BalanceHistories []BalanceHistory

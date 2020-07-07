@@ -8,6 +8,8 @@ import (
 	model "github.com/fajardm/ewallet-example/app/user/model"
 	mock "github.com/stretchr/testify/mock"
 
+	sql "database/sql"
+
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -76,13 +78,13 @@ func (_m *Repository) GetByUsernameOrEmail(_a0 context.Context, _a1 string, _a2 
 	return r0, r1
 }
 
-// Store provides a mock function with given fields: _a0, _a1
-func (_m *Repository) Store(_a0 context.Context, _a1 model.User) error {
-	ret := _m.Called(_a0, _a1)
+// TxStore provides a mock function with given fields: _a0, _a1, _a2
+func (_m *Repository) TxStore(_a0 context.Context, _a1 *sql.Tx, _a2 model.User) error {
+	ret := _m.Called(_a0, _a1, _a2)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, model.User) error); ok {
-		r0 = rf(_a0, _a1)
+	if rf, ok := ret.Get(0).(func(context.Context, *sql.Tx, model.User) error); ok {
+		r0 = rf(_a0, _a1, _a2)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -96,6 +98,20 @@ func (_m *Repository) Update(_a0 context.Context, _a1 model.User) error {
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, model.User) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WithTransaction provides a mock function with given fields: _a0, _a1
+func (_m *Repository) WithTransaction(_a0 context.Context, _a1 func(*sql.Tx) error) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, func(*sql.Tx) error) error); ok {
 		r0 = rf(_a0, _a1)
 	} else {
 		r0 = ret.Error(0)
